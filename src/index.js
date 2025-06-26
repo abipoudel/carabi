@@ -16,8 +16,9 @@ createRoot(document.getElementById("root")).render(
     </Canvas>
 
     <div class="controls">
-      <p>press w a s d to move</p>
       <p>press k to swap camera</p>
+      <p>press w a s d to move</p>
+      <p>press spacebar to jump</p>
       <p>press r to reset</p>
       <p>press arrows for flips</p>
     </div>
