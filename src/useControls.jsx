@@ -1,7 +1,8 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 
 export const useControls = (vehicleApi, chassisApi) => {
   let [controls, setControls] = useState({ });
+  const jumpCount = useRef(0);
 
   useEffect(() => {
     const keyDownPressHandler = (e) => {
@@ -61,7 +62,35 @@ export const useControls = (vehicleApi, chassisApi) => {
       chassisApi.angularVelocity.set(0, 0, 0);
       chassisApi.rotation.set(0, 0, 0);
     }
+
+    // JUMP with spacebar, allow double jump only
+    if (controls[" "]) {
+      if (jumpCount.current < 2) {
+        chassisApi.applyImpulse([0, 200, 0], [0, 0, 0]);
+        jumpCount.current += 1;
+      }
+    }
+
   }, [controls, vehicleApi, chassisApi]);
+
+  // Reset jumpCount when car touches the ground
+  useEffect(() => {
+    let landed = false;
+
+    const unsubscribe = chassisApi.velocity.subscribe(([vx, vy, vz]) => {
+      // Check if the car is near the ground (velocity in the Y direction is close to 0)
+      if (Math.abs(vy) < 0.1 && !landed) {
+        jumpCount.current = 0; // Reset jump count when landing
+        landed = true;
+      } else if (Math.abs(vy) > 0.2) {
+        landed = false; // It's in the air again
+      }
+    });
+
+    return () => {
+      unsubscribe();
+    };
+  }, [chassisApi]);
 
   return controls;
 }
