@@ -3,6 +3,8 @@ import { useEffect, useState, useRef } from "react";
 export const useControls = (vehicleApi, chassisApi) => {
   let [controls, setControls] = useState({ });
   const jumpCount = useRef(0);
+  
+  const fpsRef = useRef(null);
 
   useEffect(() => {
     const keyDownPressHandler = (e) => {
@@ -72,6 +74,53 @@ export const useControls = (vehicleApi, chassisApi) => {
     }
 
   }, [controls, vehicleApi, chassisApi]);
+
+  
+// Create the FPS display element
+useEffect(() => {
+  const fpsDiv = document.createElement("div");
+  fpsDiv.style.position = "fixed";
+  fpsDiv.style.top = "10px";
+  fpsDiv.style.left = "10px";
+  fpsDiv.style.padding = "4px 8px";
+  fpsDiv.style.background = "rgba(0, 0, 0, 0.4)";
+  fpsDiv.style.color = "#00ff00";
+  fpsDiv.style.fontSize = "14px";
+  fpsDiv.style.fontFamily = "monospace";
+  fpsDiv.style.zIndex = "9999";
+  fpsDiv.style.borderRadius = "5px";
+  fpsDiv.style.pointerEvents = "none";
+  fpsRef.current = fpsDiv;
+
+  document.body.appendChild(fpsDiv);
+
+  return () => {
+    document.body.removeChild(fpsDiv);
+  };
+}, []);
+
+// Update the FPS value continuously
+useEffect(() => {
+  let lastTime = performance.now();
+  let frameCount = 0;
+
+  const updateFPS = (now) => {
+    frameCount++;
+    const delta = now - lastTime;
+    if (delta >= 1000) {
+      const fps = Math.round((frameCount * 1000) / delta);
+      frameCount = 0;
+      lastTime = now;
+
+      if (fpsRef.current) {
+        fpsRef.current.innerText = `FPS: ${fps}`;
+      }
+    }
+    requestAnimationFrame(updateFPS);
+  };
+
+  requestAnimationFrame(updateFPS);
+}, []);
 
   // Reset jumpCount when car touches the ground
   useEffect(() => {
